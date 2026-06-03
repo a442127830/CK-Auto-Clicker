@@ -1,6 +1,6 @@
 APP_TITLE = "CK Auto Clicker"
 SETTINGS_FILE = "ck_auto_clicker_settings.json"
-PROJECT_URL = "https://github.com/a442127830/PulseClick"
+PROJECT_URL = "https://github.com/a442127830/CK-Auto-Clicker"
 CONTROL_RADIUS = 8
 
 VK_F6 = 0x75

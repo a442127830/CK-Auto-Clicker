@@ -110,7 +110,7 @@ def resource_path(*parts):
     return os.path.join(base_dir, *parts)
 
 
-class PulseClickApp(ctk.CTk):
+class CKAutoClickerApp(ctk.CTk):
     def __init__(self):
         self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.settings_store = SettingsStore(self.base_dir)

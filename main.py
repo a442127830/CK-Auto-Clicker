@@ -1,5 +1,5 @@
-from pulseclick.app import PulseClickApp
+from pulseclick.app import CKAutoClickerApp
 
 
 if __name__ == "__main__":
-    PulseClickApp().mainloop()
+    CKAutoClickerApp().mainloop()
