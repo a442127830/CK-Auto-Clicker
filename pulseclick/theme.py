@@ -1,5 +1,5 @@
 THEMES = {
-    "棕色": {
+    "Brown": {
         "appearance": "Dark",
         "window": "#17120f",
         "sidebar": "#211913",
@@ -21,7 +21,7 @@ THEMES = {
         "glass": "#2f251f",
         "overlay": "#211913",
     },
-    "白色": {
+    "White": {
         "appearance": "Light",
         "window": "#f7f4ee",
         "sidebar": "#eee8df",
@@ -51,11 +51,19 @@ def token(mode, key):
 
 
 def normalize_theme(name):
+    if name == "Brown":
+        return "Brown"
+    if name == "White":
+        return "White"
     if name == "深色":
-        return "棕色"
+        return "Brown"
     if name == "浅色":
-        return "白色"
-    return name if name in THEMES else "棕色"
+        return "White"
+    if name == "棕色":
+        return "Brown"
+    if name == "白色":
+        return "White"
+    return "Brown"
 
 
 def appearance(mode):

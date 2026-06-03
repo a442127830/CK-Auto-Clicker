@@ -11,4 +11,5 @@ dist/
 *.spec
 pulseclick_settings.json
 pulseclick_refactor_settings.json
+ck_auto_clicker_settings.json
 *.log

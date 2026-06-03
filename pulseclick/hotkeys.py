@@ -21,7 +21,7 @@ class HotkeyThread(threading.Thread):
             if user32.RegisterHotKey(None, hotkey_id, MOD_NOREPEAT, vk):
                 self.registered_ids.append(hotkey_id)
             else:
-                self.on_error(f"{key_name} 注册失败：{last_error_message()}")
+                self.on_error(f"{key_name} registration failed: {last_error_message()}")
 
         msg = wintypes.MSG()
         while self.running and user32.GetMessageW(ctypes.byref(msg), None, 0, 0) != 0:

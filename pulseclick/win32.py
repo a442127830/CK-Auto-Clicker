@@ -22,15 +22,15 @@ MOUSEEVENTF_MIDDLEDOWN = 0x0020
 MOUSEEVENTF_MIDDLEUP = 0x0040
 
 BUTTON_FLAGS = {
-    "左键": (MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP),
-    "右键": (MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP),
-    "中键": (MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP),
+    "Left": (MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP),
+    "Right": (MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP),
+    "Middle": (MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP),
 }
 
 RECORD_BUTTONS = {
-    "left": {"vk": 0x01, "name": "左键", "down": MOUSEEVENTF_LEFTDOWN, "up": MOUSEEVENTF_LEFTUP},
-    "right": {"vk": 0x02, "name": "右键", "down": MOUSEEVENTF_RIGHTDOWN, "up": MOUSEEVENTF_RIGHTUP},
-    "middle": {"vk": 0x04, "name": "中键", "down": MOUSEEVENTF_MIDDLEDOWN, "up": MOUSEEVENTF_MIDDLEUP},
+    "left": {"vk": 0x01, "name": "Left", "down": MOUSEEVENTF_LEFTDOWN, "up": MOUSEEVENTF_LEFTUP},
+    "right": {"vk": 0x02, "name": "Right", "down": MOUSEEVENTF_RIGHTDOWN, "up": MOUSEEVENTF_RIGHTUP},
+    "middle": {"vk": 0x04, "name": "Middle", "down": MOUSEEVENTF_MIDDLEDOWN, "up": MOUSEEVENTF_MIDDLEUP},
 }
 
 KEY_NAMES = {
@@ -84,7 +84,7 @@ class INPUT(ctypes.Structure):
 def last_error_message():
     error = ctypes.get_last_error()
     if not error:
-        return "未知错误"
+        return "Unknown error"
     buffer = ctypes.create_unicode_buffer(512)
     kernel32.FormatMessageW(0x00001000, None, error, 0, buffer, len(buffer), None)
     return buffer.value.strip() or f"Win32 error {error}"
