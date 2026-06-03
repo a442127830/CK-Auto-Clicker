@@ -18,6 +18,7 @@ except ImportError:
 
 APP_TITLE = "PulseClick"
 SETTINGS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pulseclick_settings.json")
+CONTROL_RADIUS = 8
 
 VK_F6 = 0x75
 VK_F7 = 0x76
@@ -65,21 +66,30 @@ for offset in range(12):
 RECORD_KEY_CODES = [code for code in KEY_NAMES if code not in (VK_F6, VK_F7, VK_F8, VK_F9, VK_F10)]
 
 UI = {
-    "app_bg": ("#f6f7fb", "#10131a"),
-    "sidebar": ("#ffffff", "#151922"),
-    "panel": ("#ffffff", "#1b202b"),
-    "panel_soft": ("#eef2f7", "#252b38"),
-    "field": ("#f8fafc", "#111722"),
-    "text": ("#111827", "#f8fafc"),
-    "text_muted": ("#647084", "#a3adbd"),
-    "border": ("#d9e2ec", "#303847"),
-    "accent": ("#2563eb", "#14b8a6"),
-    "accent_hover": ("#1d4ed8", "#0d9488"),
-    "accent_soft": ("#e7efff", "#132f2f"),
-    "danger": ("#dc2626", "#f43f5e"),
-    "danger_hover": ("#b91c1c", "#e11d48"),
-    "neutral": ("#e4e9f2", "#26313f"),
-    "neutral_hover": ("#cfd8e5", "#334155"),
+    "app_bg": ("#f4f6f8", "#0f1117"),
+    "sidebar": ("#ffffff", "#151821"),
+    "sidebar_active": ("#edf5ff", "#202633"),
+    "panel": ("#ffffff", "#1a1e27"),
+    "panel_soft": ("#eef2f6", "#242a35"),
+    "control": ("#d8e2ee", "#242a35"),
+    "control_hover": ("#cbd7e6", "#303847"),
+    "button_soft": ("#ffffff", "#242a35"),
+    "button_soft_hover": ("#f8fafc", "#303847"),
+    "field": ("#f8fafc", "#121722"),
+    "text": ("#111827", "#f4f7fb"),
+    "text_muted": ("#667085", "#98a2b3"),
+    "border": ("#d8dee8", "#2b3240"),
+    "accent": ("#1677ff", "#22c55e"),
+    "accent_hover": ("#0958d9", "#16a34a"),
+    "accent_soft": ("#e8f2ff", "#193127"),
+    "segment_selected": ("#1677ff", "#1f7a52"),
+    "segment_selected_hover": ("#0958d9", "#24885d"),
+    "segment_unselected": ("#ffffff", "#242a35"),
+    "segment_unselected_hover": ("#f5f8fc", "#2d3441"),
+    "danger": ("#dc2626", "#ef4444"),
+    "danger_hover": ("#b91c1c", "#dc2626"),
+    "neutral": ("#e8edf3", "#2a303d"),
+    "neutral_hover": ("#d5dde8", "#343c4b"),
 }
 
 FLAT_THEME = {
@@ -158,8 +168,8 @@ class AutoClickerApp(ctk.CTk):
         super().__init__()
         self.root = self
         self.title(APP_TITLE)
-        self.geometry("1060x760")
-        self.minsize(980, 700)
+        self.geometry("1080x740")
+        self.minsize(1020, 680)
         self.configure(fg_color=UI["app_bg"])
 
         self.theme_name = tk.StringVar(value=saved_theme)
@@ -219,24 +229,37 @@ class AutoClickerApp(ctk.CTk):
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        self.sidebar = ctk.CTkFrame(self, width=230, corner_radius=0, fg_color=UI["sidebar"])
+        self.sidebar = ctk.CTkFrame(self, width=248, corner_radius=0, fg_color=UI["sidebar"])
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_rowconfigure(8, weight=1)
 
-        ctk.CTkLabel(self.sidebar, text=APP_TITLE, text_color=UI["text"], font=ctk.CTkFont(size=28, weight="bold")).grid(row=0, column=0, padx=24, pady=(28, 4), sticky="w")
-        ctk.CTkLabel(self.sidebar, text="Auto clicker & macro", text_color=UI["text_muted"]).grid(row=1, column=0, padx=24, pady=(0, 20), sticky="w")
+        brand = ctk.CTkFrame(self.sidebar, fg_color="transparent")
+        brand.grid(row=0, column=0, padx=22, pady=(26, 18), sticky="ew")
+        brand.grid_columnconfigure(1, weight=1)
+        ctk.CTkLabel(
+            brand,
+            text="P",
+            width=38,
+            height=38,
+            corner_radius=CONTROL_RADIUS,
+            fg_color=UI["accent"],
+            text_color="#ffffff",
+            font=ctk.CTkFont(size=18, weight="bold"),
+        ).grid(row=0, column=0, rowspan=2, padx=(0, 12), sticky="w")
+        ctk.CTkLabel(brand, text=APP_TITLE, text_color=UI["text"], font=ctk.CTkFont(size=20, weight="bold")).grid(row=0, column=1, sticky="w")
+        ctk.CTkLabel(brand, text="Auto clicker", text_color=UI["text_muted"], font=ctk.CTkFont(size=12)).grid(row=1, column=1, sticky="w", pady=(2, 0))
 
-        self.status_badge = ctk.CTkLabel(self.sidebar, textvariable=self.status_text, height=44, corner_radius=14, fg_color=UI["accent_soft"], text_color=UI["accent"], font=ctk.CTkFont(size=18, weight="bold"))
-        self.status_badge.grid(row=2, column=0, padx=20, pady=(0, 18), sticky="ew")
+        self.status_badge = ctk.CTkLabel(self.sidebar, textvariable=self.status_text, height=38, corner_radius=CONTROL_RADIUS, fg_color=UI["accent_soft"], text_color=UI["accent"], font=ctk.CTkFont(size=14, weight="bold"))
+        self.status_badge.grid(row=2, column=0, padx=20, pady=(0, 14), sticky="ew")
 
-        self.start_button = ctk.CTkButton(self.sidebar, text="开始  F6", height=44, corner_radius=12, fg_color=UI["accent"], hover_color=UI["accent_hover"], command=self.start)
+        self.start_button = ctk.CTkButton(self.sidebar, text="开始  F6", height=40, corner_radius=CONTROL_RADIUS, fg_color=UI["accent"], hover_color=UI["accent_hover"], command=self.start)
         self.start_button.grid(row=3, column=0, padx=20, pady=(0, 10), sticky="ew")
-        self.stop_button = ctk.CTkButton(self.sidebar, text="停止  F8", height=44, corner_radius=12, fg_color=UI["danger"], hover_color=UI["danger_hover"], command=self.stop)
-        self.stop_button.grid(row=4, column=0, padx=20, pady=(0, 18), sticky="ew")
+        self.stop_button = ctk.CTkButton(self.sidebar, text="停止  F8", height=40, corner_radius=CONTROL_RADIUS, fg_color=UI["danger"], hover_color=UI["danger_hover"], command=self.stop)
+        self.stop_button.grid(row=4, column=0, padx=20, pady=(0, 16), sticky="ew")
 
-        ctk.CTkLabel(self.sidebar, text="快捷键", text_color=UI["text_muted"], anchor="w").grid(row=5, column=0, padx=24, sticky="ew")
+        ctk.CTkLabel(self.sidebar, text="快捷键", text_color=UI["text_muted"], anchor="w", font=ctk.CTkFont(size=12, weight="bold")).grid(row=5, column=0, padx=24, sticky="ew")
         shortcuts = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        shortcuts.grid(row=6, column=0, padx=20, pady=(10, 20), sticky="ew")
+        shortcuts.grid(row=6, column=0, padx=20, pady=(8, 18), sticky="ew")
         shortcuts.grid_columnconfigure(1, weight=1)
         for row, (key, text) in enumerate((
             ("F6", "开始 / 停止"),
@@ -247,20 +270,23 @@ class AutoClickerApp(ctk.CTk):
         )):
             self.shortcut_row(shortcuts, row, key, text)
 
-        ctk.CTkLabel(self.sidebar, text="外观", text_color=UI["text_muted"], anchor="w").grid(row=9, column=0, padx=24, pady=(0, 8), sticky="ew")
+        ctk.CTkLabel(self.sidebar, text="外观", text_color=UI["text_muted"], anchor="w", font=ctk.CTkFont(size=12, weight="bold")).grid(row=9, column=0, padx=24, pady=(0, 8), sticky="ew")
         self.theme_switch = ctk.CTkSegmentedButton(
             self.sidebar,
             values=["深色", "浅色"],
             variable=self.theme_name,
-            fg_color=UI["panel_soft"],
-            selected_color=UI["accent"],
-            selected_hover_color=UI["accent_hover"],
-            unselected_hover_color=UI["neutral_hover"],
+            corner_radius=CONTROL_RADIUS,
+            border_width=2,
+            fg_color=UI["control"],
+            selected_color=UI["segment_selected"],
+            selected_hover_color=UI["segment_selected_hover"],
+            unselected_color=UI["segment_unselected"],
+            unselected_hover_color=UI["segment_unselected_hover"],
             text_color=UI["text"],
             command=self.switch_theme,
         )
         self.theme_switch.grid(row=10, column=0, padx=20, pady=(0, 12), sticky="ew")
-        self.segment_registry.append(self.theme_switch)
+        self.register_segment(self.theme_switch)
         self.top_switch = ctk.CTkSwitch(self.sidebar, text="窗口置顶", variable=self.always_on_top, progress_color=UI["accent"], button_hover_color=UI["accent_hover"], command=self.toggle_topmost)
         self.top_switch.grid(row=11, column=0, padx=24, pady=(0, 10), sticky="w")
         self.hide_switch = ctk.CTkSwitch(self.sidebar, text="开始后隐藏", variable=self.hide_when_running, progress_color=UI["accent"], button_hover_color=UI["accent_hover"], command=self.save_settings)
@@ -268,26 +294,27 @@ class AutoClickerApp(ctk.CTk):
         self.switch_registry.extend([self.top_switch, self.hide_switch])
 
         self.main = ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        self.main.grid(row=0, column=1, sticky="nsew", padx=24, pady=24)
+        self.main.grid(row=0, column=1, sticky="nsew", padx=28, pady=24)
         self.main.grid_rowconfigure(1, weight=1)
         self.main.grid_columnconfigure(0, weight=1)
 
         header = ctk.CTkFrame(self.main, fg_color="transparent")
-        header.grid(row=0, column=0, sticky="ew", pady=(0, 18))
+        header.grid(row=0, column=0, sticky="ew", pady=(0, 16))
         header.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(header, text="自动点击与脚本录制", text_color=UI["text"], font=ctk.CTkFont(size=24, weight="bold")).grid(row=0, column=0, sticky="w")
-        ctk.CTkLabel(header, text="参考 CustomTkinter / Fluent 风格重做的现代桌面工具界面", text_color=UI["text_muted"]).grid(row=1, column=0, sticky="w", pady=(4, 0))
+        ctk.CTkLabel(header, text="连点控制台", text_color=UI["text"], font=ctk.CTkFont(size=24, weight="bold")).grid(row=0, column=0, sticky="w")
+        ctk.CTkLabel(header, text="Clash Verge inspired desktop control panel", text_color=UI["text_muted"], font=ctk.CTkFont(size=13)).grid(row=1, column=0, sticky="w", pady=(4, 0))
 
         self.tabs = ctk.CTkTabview(
             self.main,
-            corner_radius=18,
+            corner_radius=CONTROL_RADIUS,
             fg_color=UI["panel"],
             border_width=1,
             border_color=UI["border"],
-            segmented_button_fg_color=UI["panel_soft"],
-            segmented_button_selected_color=UI["accent"],
-            segmented_button_selected_hover_color=UI["accent_hover"],
-            segmented_button_unselected_hover_color=UI["neutral_hover"],
+            segmented_button_fg_color=UI["control"],
+            segmented_button_selected_color=UI["segment_selected"],
+            segmented_button_selected_hover_color=UI["segment_selected_hover"],
+            segmented_button_unselected_color=UI["segment_unselected"],
+            segmented_button_unselected_hover_color=UI["segment_unselected_hover"],
         )
         self.tabs.grid(row=1, column=0, sticky="nsew")
         self.click_tab = self.tabs.add("连点")
@@ -295,69 +322,91 @@ class AutoClickerApp(ctk.CTk):
         self.stats_tab = self.tabs.add("状态")
         self.tabs._segmented_button.configure(
             width=360,
-            height=40,
-            corner_radius=12,
+            height=38,
+            corner_radius=CONTROL_RADIUS,
+            border_width=2,
             font=ctk.CTkFont(size=14, weight="bold"),
+            text_color=UI["text"],
         )
-        self.tabs._segmented_button.grid_configure(sticky="w", padx=22, pady=(18, 8))
+        self.tabs._segmented_button.grid_configure(sticky="w", padx=18, pady=(16, 8))
+        self.register_segment(self.tabs._segmented_button)
         self.build_click_tab()
         self.build_script_tab()
         self.build_stats_tab()
 
     def build_click_tab(self):
         tab = self.click_tab
-        tab.grid_columnconfigure((0, 1), weight=1)
+        tab.grid_rowconfigure(0, weight=1)
+        tab.grid_columnconfigure(0, weight=1)
 
-        self.input_card(tab, "点击间隔", self.interval_ms, "ms").grid(row=0, column=0, padx=(10, 8), pady=(10, 10), sticky="ew")
-        self.input_card(tab, "随机浮动", self.jitter_ms, "ms").grid(row=0, column=1, padx=(8, 10), pady=(10, 10), sticky="ew")
-        self.input_card(tab, "启动延迟", self.start_delay, "s").grid(row=1, column=0, padx=(10, 8), pady=10, sticky="ew")
-        self.input_card(tab, "固定次数", self.repeat_count, "次").grid(row=1, column=1, padx=(8, 10), pady=10, sticky="ew")
+        content = ctk.CTkScrollableFrame(
+            tab,
+            bg_color=UI["panel"],
+            fg_color="transparent",
+            scrollbar_button_color=UI["control"],
+            scrollbar_button_hover_color=UI["control_hover"],
+        )
+        content.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
+        content.grid_columnconfigure((0, 1), weight=1)
 
-        self.segment_card(tab, "鼠标按键", self.mouse_button, ["左键", "右键", "中键"]).grid(row=2, column=0, padx=(10, 8), pady=10, sticky="ew")
-        self.segment_card(tab, "点击方式", self.click_mode, ["单击", "双击"]).grid(row=2, column=1, padx=(8, 10), pady=10, sticky="ew")
-        self.segment_card(tab, "重复模式", self.repeat_mode, ["一直点击", "固定次数"]).grid(row=3, column=0, padx=(10, 8), pady=10, sticky="ew")
-        self.segment_card(tab, "点击位置", self.position_mode, ["当前位置", "固定坐标"]).grid(row=3, column=1, padx=(8, 10), pady=10, sticky="ew")
+        self.input_card(content, "点击间隔", self.interval_ms, "ms").grid(row=0, column=0, padx=(10, 8), pady=(10, 10), sticky="ew")
+        self.input_card(content, "随机浮动", self.jitter_ms, "ms").grid(row=0, column=1, padx=(8, 10), pady=(10, 10), sticky="ew")
+        self.input_card(content, "启动延迟", self.start_delay, "s").grid(row=1, column=0, padx=(10, 8), pady=10, sticky="ew")
+        self.input_card(content, "固定次数", self.repeat_count, "次").grid(row=1, column=1, padx=(8, 10), pady=10, sticky="ew")
 
-        preset = ctk.CTkFrame(tab, corner_radius=18, fg_color=UI["panel"])
+        self.segment_card(content, "鼠标按键", self.mouse_button, ["左键", "右键", "中键"]).grid(row=2, column=0, padx=(10, 8), pady=10, sticky="ew")
+        self.segment_card(content, "点击方式", self.click_mode, ["单击", "双击"]).grid(row=2, column=1, padx=(8, 10), pady=10, sticky="ew")
+        self.segment_card(content, "重复模式", self.repeat_mode, ["一直点击", "固定次数"]).grid(row=3, column=0, padx=(10, 8), pady=10, sticky="ew")
+        self.segment_card(content, "点击位置", self.position_mode, ["当前位置", "固定坐标"]).grid(row=3, column=1, padx=(8, 10), pady=10, sticky="ew")
+
+        preset = ctk.CTkFrame(content, corner_radius=CONTROL_RADIUS, bg_color=UI["panel"], fg_color=UI["panel"], border_width=1, border_color=UI["border"])
         preset.grid(row=4, column=0, columnspan=2, padx=10, pady=(12, 10), sticky="ew")
         preset.grid_columnconfigure((0, 1, 2, 3), weight=1)
         ctk.CTkLabel(preset, text="速度预设", text_color=UI["text"], font=ctk.CTkFont(size=15, weight="bold")).grid(row=0, column=0, columnspan=4, padx=18, pady=(16, 10), sticky="w")
         for col, (text, interval, jitter) in enumerate((("稳一点", 250, 20), ("常用", 100, 0), ("快速", 25, 5), ("极快", 5, 0))):
-            self.styled_button(preset, text, lambda i=interval, j=jitter: self.apply_preset(i, j), kind="soft", height=36).grid(row=1, column=col, padx=8, pady=(0, 16), sticky="ew")
+            self.styled_button(preset, text, lambda i=interval, j=jitter: self.apply_preset(i, j), kind="soft", height=34).grid(row=1, column=col, padx=8, pady=(0, 16), sticky="ew")
 
     def build_script_tab(self):
         tab = self.script_tab
         tab.grid_columnconfigure(0, weight=1)
 
-        summary = ctk.CTkFrame(tab, corner_radius=18, fg_color=UI["panel"])
+        summary = ctk.CTkFrame(tab, corner_radius=CONTROL_RADIUS, bg_color=UI["panel"], fg_color=UI["panel"], border_width=1, border_color=UI["border"])
         summary.grid(row=0, column=0, padx=10, pady=(10, 10), sticky="ew")
         summary.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(summary, text="脚本录制", text_color=UI["text"], font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(16, 4), sticky="w")
         ctk.CTkLabel(summary, textvariable=self.script_summary, text_color=UI["text_muted"]).grid(row=1, column=0, padx=18, pady=(0, 16), sticky="w")
 
-        controls = ctk.CTkFrame(tab, corner_radius=18, fg_color=UI["panel"])
+        controls = ctk.CTkFrame(tab, corner_radius=CONTROL_RADIUS, bg_color=UI["panel"], fg_color=UI["panel"], border_width=1, border_color=UI["border"])
         controls.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
         controls.grid_columnconfigure((0, 1, 2, 3), weight=1)
         self.small_entry(controls, "循环次数", self.script_repeat).grid(row=0, column=0, padx=(16, 8), pady=16, sticky="ew")
         self.small_entry(controls, "速度倍率", self.script_speed).grid(row=0, column=1, padx=8, pady=16, sticky="ew")
-        ctk.CTkCheckBox(controls, text="记录鼠标移动轨迹", variable=self.record_moves).grid(row=0, column=2, columnspan=2, padx=16, pady=16, sticky="w")
+        ctk.CTkCheckBox(
+            controls,
+            text="记录鼠标移动轨迹",
+            variable=self.record_moves,
+            fg_color=UI["accent"],
+            hover_color=UI["accent_hover"],
+            border_color=UI["border"],
+            text_color=UI["text"],
+        ).grid(row=0, column=2, columnspan=2, padx=16, pady=16, sticky="w")
 
-        text_card = ctk.CTkFrame(tab, corner_radius=18, fg_color=UI["panel"])
+        text_card = ctk.CTkFrame(tab, corner_radius=CONTROL_RADIUS, bg_color=UI["panel"], fg_color=UI["panel"], border_width=1, border_color=UI["border"])
         text_card.grid(row=2, column=0, padx=10, pady=10, sticky="ew")
         text_card.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(text_card, text="文本输入事件", text_color=UI["text"], font=ctk.CTkFont(size=15, weight="bold")).grid(row=0, column=0, columnspan=2, padx=18, pady=(16, 8), sticky="w")
-        ctk.CTkEntry(text_card, textvariable=self.script_text_input, height=42, placeholder_text="输入要回放的文本，支持中文和符号", fg_color=UI["field"], border_color=UI["border"], text_color=UI["text"], placeholder_text_color=UI["text_muted"]).grid(row=1, column=0, padx=(18, 8), pady=(0, 18), sticky="ew")
-        self.styled_button(text_card, "添加文本输入", self.add_text_input_event, height=42).grid(row=1, column=1, padx=(8, 18), pady=(0, 18), sticky="e")
+        ctk.CTkEntry(text_card, textvariable=self.script_text_input, height=40, corner_radius=CONTROL_RADIUS, placeholder_text="输入要回放的文本，支持中文和符号", fg_color=UI["field"], border_color=UI["border"], text_color=UI["text"], placeholder_text_color=UI["text_muted"]).grid(row=1, column=0, padx=(18, 8), pady=(0, 18), sticky="ew")
+        self.styled_button(text_card, "添加文本输入", self.add_text_input_event, height=40).grid(row=1, column=1, padx=(8, 18), pady=(0, 18), sticky="e")
 
-        actions = ctk.CTkFrame(tab, corner_radius=18, fg_color=UI["panel"])
+        actions = ctk.CTkFrame(tab, corner_radius=CONTROL_RADIUS, bg_color=UI["panel"], fg_color=UI["panel"], border_width=1, border_color=UI["border"])
         actions.grid(row=3, column=0, padx=10, pady=10, sticky="ew")
         actions.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)
-        self.record_button = self.styled_button(actions, "录制 F9", self.toggle_recording, kind="danger", height=42)
+        self.record_button = self.styled_button(actions, "录制 F9", self.toggle_recording, kind="danger", height=40)
         self.record_button.grid(row=0, column=0, padx=(16, 8), pady=16, sticky="ew")
-        self.styled_button(actions, "播放 F10", self.play_script, height=42).grid(row=0, column=1, padx=8, pady=16, sticky="ew")
-        self.styled_button(actions, "保存", self.save_script, kind="soft", height=42).grid(row=0, column=2, padx=8, pady=16, sticky="ew")
-        self.styled_button(actions, "加载", self.load_script, kind="soft", height=42).grid(row=0, column=3, padx=8, pady=16, sticky="ew")
-        self.styled_button(actions, "清空", self.clear_script, kind="neutral", height=42).grid(row=0, column=4, padx=(8, 16), pady=16, sticky="ew")
+        self.styled_button(actions, "播放 F10", self.play_script, height=40).grid(row=0, column=1, padx=8, pady=16, sticky="ew")
+        self.styled_button(actions, "保存", self.save_script, kind="soft", height=40).grid(row=0, column=2, padx=8, pady=16, sticky="ew")
+        self.styled_button(actions, "加载", self.load_script, kind="soft", height=40).grid(row=0, column=3, padx=8, pady=16, sticky="ew")
+        self.styled_button(actions, "清空", self.clear_script, kind="neutral", height=40).grid(row=0, column=4, padx=(8, 16), pady=16, sticky="ew")
 
     def build_stats_tab(self):
         tab = self.stats_tab
@@ -368,52 +417,55 @@ class AutoClickerApp(ctk.CTk):
         self.metric_card(tab, "坐标 X", self.fixed_x).grid(row=1, column=0, padx=(10, 8), pady=10, sticky="ew")
         self.metric_card(tab, "坐标 Y", self.fixed_y).grid(row=1, column=1, padx=(8, 10), pady=10, sticky="ew")
 
-        coord_actions = ctk.CTkFrame(tab, corner_radius=18, fg_color=UI["panel"])
+        coord_actions = ctk.CTkFrame(tab, corner_radius=CONTROL_RADIUS, bg_color=UI["panel"], fg_color=UI["panel"], border_width=1, border_color=UI["border"])
         coord_actions.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky="ew")
         coord_actions.grid_columnconfigure((0, 1), weight=1)
-        self.styled_button(coord_actions, "记录当前位置 F7", self.capture_position, height=44).grid(row=0, column=0, padx=(16, 8), pady=16, sticky="ew")
-        self.styled_button(coord_actions, "3 秒后取点", self.capture_position_after_delay, kind="soft", height=44).grid(row=0, column=1, padx=(8, 16), pady=16, sticky="ew")
+        self.styled_button(coord_actions, "记录当前位置 F7", self.capture_position, height=40).grid(row=0, column=0, padx=(16, 8), pady=16, sticky="ew")
+        self.styled_button(coord_actions, "3 秒后取点", self.capture_position_after_delay, kind="soft", height=40).grid(row=0, column=1, padx=(8, 16), pady=16, sticky="ew")
 
     def input_card(self, master, title, variable, suffix):
-        frame = ctk.CTkFrame(master, corner_radius=18, fg_color=UI["panel"])
+        frame = ctk.CTkFrame(master, corner_radius=CONTROL_RADIUS, bg_color=UI["panel"], fg_color=UI["panel"], border_width=1, border_color=UI["border"])
         frame.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(frame, text=title, text_color=UI["text_muted"]).grid(row=0, column=0, padx=18, pady=(16, 4), sticky="w")
         row = ctk.CTkFrame(frame, fg_color="transparent")
         row.grid(row=1, column=0, padx=18, pady=(0, 16), sticky="ew")
         row.grid_columnconfigure(0, weight=1)
-        ctk.CTkEntry(row, textvariable=variable, height=44, font=ctk.CTkFont(size=20, weight="bold"), justify="right", fg_color=UI["field"], border_color=UI["border"], text_color=UI["text"]).grid(row=0, column=0, sticky="ew")
+        ctk.CTkEntry(row, textvariable=variable, height=40, corner_radius=CONTROL_RADIUS, font=ctk.CTkFont(size=19, weight="bold"), justify="right", fg_color=UI["field"], border_color=UI["border"], text_color=UI["text"]).grid(row=0, column=0, sticky="ew")
         ctk.CTkLabel(row, text=suffix, text_color=UI["text_muted"]).grid(row=0, column=1, padx=(10, 0))
         return frame
 
     def segment_card(self, master, title, variable, values):
-        frame = ctk.CTkFrame(master, corner_radius=18, fg_color=UI["panel"])
+        frame = ctk.CTkFrame(master, corner_radius=CONTROL_RADIUS, bg_color=UI["panel"], fg_color=UI["panel"], border_width=1, border_color=UI["border"])
         frame.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(frame, text=title, text_color=UI["text_muted"]).grid(row=0, column=0, padx=18, pady=(16, 8), sticky="w")
         segment = ctk.CTkSegmentedButton(
             frame,
             values=values,
             variable=variable,
-            fg_color=UI["panel_soft"],
-            selected_color=UI["accent"],
-            selected_hover_color=UI["accent_hover"],
-            unselected_hover_color=UI["neutral_hover"],
+            corner_radius=CONTROL_RADIUS,
+            border_width=2,
+            fg_color=UI["control"],
+            selected_color=UI["segment_selected"],
+            selected_hover_color=UI["segment_selected_hover"],
+            unselected_color=UI["segment_unselected"],
+            unselected_hover_color=UI["segment_unselected_hover"],
             text_color=UI["text"],
         )
         segment.grid(row=1, column=0, padx=18, pady=(0, 16), sticky="ew")
-        self.segment_registry.append(segment)
+        self.register_segment(segment)
         return frame
 
     def small_entry(self, master, title, variable):
         frame = ctk.CTkFrame(master, fg_color="transparent")
         frame.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(frame, text=title, text_color=UI["text_muted"]).grid(row=0, column=0, sticky="w")
-        ctk.CTkEntry(frame, textvariable=variable, height=38, fg_color=UI["field"], border_color=UI["border"], text_color=UI["text"]).grid(row=1, column=0, pady=(6, 0), sticky="ew")
+        ctk.CTkEntry(frame, textvariable=variable, height=38, corner_radius=CONTROL_RADIUS, fg_color=UI["field"], border_color=UI["border"], text_color=UI["text"]).grid(row=1, column=0, pady=(6, 0), sticky="ew")
         return frame
 
     def metric_card(self, master, title, variable):
-        frame = ctk.CTkFrame(master, corner_radius=18, fg_color=UI["panel"])
+        frame = ctk.CTkFrame(master, corner_radius=CONTROL_RADIUS, bg_color=UI["panel"], fg_color=UI["panel"], border_width=1, border_color=UI["border"])
         ctk.CTkLabel(frame, text=title, text_color=UI["text_muted"]).grid(row=0, column=0, padx=18, pady=(16, 4), sticky="w")
-        ctk.CTkLabel(frame, textvariable=variable, text_color=UI["text"], font=ctk.CTkFont(size=28, weight="bold")).grid(row=1, column=0, padx=18, pady=(0, 18), sticky="w")
+        ctk.CTkLabel(frame, textvariable=variable, text_color=UI["text"], font=ctk.CTkFont(size=26, weight="bold")).grid(row=1, column=0, padx=18, pady=(0, 18), sticky="w")
         return frame
 
     def shortcut_row(self, master, row, key, text):
@@ -422,8 +474,8 @@ class AutoClickerApp(ctk.CTk):
             text=key,
             width=44,
             height=26,
-            corner_radius=8,
-            fg_color=UI["panel_soft"],
+            corner_radius=6,
+            fg_color=UI["control"],
             text_color=UI["text"],
             font=ctk.CTkFont(size=12, weight="bold"),
         )
@@ -440,9 +492,9 @@ class AutoClickerApp(ctk.CTk):
         if kind == "danger":
             fg_color, hover_color = UI["danger"], UI["danger_hover"]
         elif kind == "neutral":
-            fg_color, hover_color = UI["neutral"], UI["neutral_hover"]
+            fg_color, hover_color = UI["button_soft"], UI["button_soft_hover"]
         elif kind == "soft":
-            fg_color, hover_color = UI["panel_soft"], UI["neutral_hover"]
+            fg_color, hover_color = UI["button_soft"], UI["button_soft_hover"]
         else:
             fg_color, hover_color = UI["accent"], UI["accent_hover"]
 
@@ -451,7 +503,7 @@ class AutoClickerApp(ctk.CTk):
             master,
             text=text,
             height=height,
-            corner_radius=12,
+            corner_radius=CONTROL_RADIUS,
             fg_color=fg_color,
             hover_color=hover_color,
             text_color=text_color,
@@ -467,6 +519,19 @@ class AutoClickerApp(ctk.CTk):
         if not any(item[0] is button for item in self.button_registry):
             self.button_registry.append((button, kind))
 
+    def register_segment(self, segment):
+        if not any(item is segment for item in self.segment_registry):
+            self.segment_registry.append(segment)
+        self.bind_segment_refresh(segment)
+
+    def bind_segment_refresh(self, segment):
+        buttons = getattr(segment, "_buttons_dict", {})
+        for button in buttons.values():
+            if getattr(button, "_pulse_segment_bound", False):
+                continue
+            button._pulse_segment_bound = True
+            button.bind("<ButtonRelease-1>", lambda _event: self.after(0, self.refresh_segment_texts), add="+")
+
     def ui_color(self, key):
         value = UI[key]
         if isinstance(value, tuple):
@@ -477,10 +542,28 @@ class AutoClickerApp(ctk.CTk):
         if kind == "danger":
             return self.ui_color("danger"), self.ui_color("danger_hover"), "#ffffff"
         if kind == "neutral":
-            return self.ui_color("neutral"), self.ui_color("neutral_hover"), self.ui_color("text")
+            return self.ui_color("button_soft"), self.ui_color("button_soft_hover"), self.ui_color("text")
         if kind == "soft":
-            return self.ui_color("panel_soft"), self.ui_color("neutral_hover"), self.ui_color("text")
+            return self.ui_color("button_soft"), self.ui_color("button_soft_hover"), self.ui_color("text")
         return self.ui_color("accent"), self.ui_color("accent_hover"), "#ffffff"
+
+    def button_border_color(self, kind):
+        if kind == "danger":
+            return self.ui_color("danger_hover")
+        if kind in ("soft", "neutral"):
+            return self.ui_color("accent")
+        return self.ui_color("accent_hover")
+
+    def refresh_segment_texts(self):
+        for segment in list(self.segment_registry):
+            if not segment.winfo_exists():
+                continue
+            self.bind_segment_refresh(segment)
+            selected = segment.get()
+            buttons = getattr(segment, "_buttons_dict", {})
+            for value, button in buttons.items():
+                if button.winfo_exists():
+                    button.configure(text_color="#ffffff" if value == selected else self.ui_color("text"))
 
     def apply_interactive_theme(self):
         for button, kind in list(self.button_registry):
@@ -491,19 +574,22 @@ class AutoClickerApp(ctk.CTk):
                 fg_color=fg_color,
                 hover_color=hover_color,
                 text_color=text_color,
-                border_color=self.ui_color("accent"),
+                border_width=1 if kind in ("soft", "neutral") else 0,
+                border_color=self.button_border_color(kind),
             )
 
         for segment in list(self.segment_registry):
             if not segment.winfo_exists():
                 continue
             segment.configure(
-                fg_color=self.ui_color("panel_soft"),
-                selected_color=self.ui_color("accent"),
-                selected_hover_color=self.ui_color("accent_hover"),
-                unselected_hover_color=self.ui_color("neutral_hover"),
+                fg_color=self.ui_color("control"),
+                selected_color=self.ui_color("segment_selected"),
+                selected_hover_color=self.ui_color("segment_selected_hover"),
+                unselected_color=self.ui_color("segment_unselected"),
+                unselected_hover_color=self.ui_color("segment_unselected_hover"),
                 text_color=self.ui_color("text"),
             )
+        self.refresh_segment_texts()
 
         for switch in list(self.switch_registry):
             if not switch.winfo_exists():
@@ -523,15 +609,28 @@ class AutoClickerApp(ctk.CTk):
     def enhance_buttons(self):
         def visit(widget):
             if isinstance(widget, ctk.CTkButton):
+                if not hasattr(widget, "_pulse_kind"):
+                    return
                 widget.configure(cursor="hand2")
 
                 def enter(_event, button=widget):
                     if str(button.cget("state")) != "disabled":
-                        button.configure(border_width=2, border_color=self.ui_color("accent"))
+                        kind = getattr(button, "_pulse_kind", "primary")
+                        _fg_color, hover_color, _text_color = self.button_colors(kind)
+                        button.configure(
+                            fg_color=hover_color,
+                            border_width=1,
+                            border_color=self.button_border_color(kind),
+                        )
 
                 def leave(_event, button=widget):
                     if button.winfo_exists():
-                        button.configure(border_width=0)
+                        kind = getattr(button, "_pulse_kind", "primary")
+                        fg_color, _hover_color, _text_color = self.button_colors(kind)
+                        button.configure(
+                            fg_color=fg_color,
+                            border_width=1 if kind in ("soft", "neutral") else 0,
+                        )
 
                 widget.bind("<Enter>", enter, add="+")
                 widget.bind("<Leave>", leave, add="+")
