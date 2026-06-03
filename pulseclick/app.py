@@ -113,7 +113,8 @@ def resource_path(*parts):
 class EqualSegment(ctk.CTkFrame):
     def __init__(self, master, values, variable, command=None, width=222, height=32):
         super().__init__(master, width=width, height=height, corner_radius=6)
-        self.values = tuple(values)
+        self.base_values = tuple(values)
+        self.display_values = tuple(values)
         self.variable = variable
         self.command = command
         self.segment_width = width
@@ -123,7 +124,7 @@ class EqualSegment(ctk.CTkFrame):
         self.grid_propagate(False)
         self.propagate(False)
         button_height = height - 6
-        for column, value in enumerate(self.values):
+        for column, value in enumerate(self.display_values):
             button = ctk.CTkButton(
                 self,
                 text=value,
@@ -137,19 +138,28 @@ class EqualSegment(ctk.CTkFrame):
             self.buttons[value] = button
 
     def set(self, value, invoke=False):
-        self.variable.set(value)
+        base_value = self.display_to_base(value)
+        self.variable.set(value if value in self.display_values else base_value)
         self.refresh()
         if invoke and self.command:
-            self.command(value)
+            self.command(base_value)
 
     def get(self):
         return self.variable.get()
 
     def configure_values(self, values):
         values = tuple(values)
-        for value, button in zip(values, self.buttons.values()):
+        self.display_values = values
+        old_buttons = list(self.buttons.values())
+        self.buttons = {}
+        for value, button in zip(values, old_buttons):
             button.configure(text=value)
-        self.values = values
+            self.buttons[value] = button
+
+    def display_to_base(self, value):
+        if value in self.display_values:
+            return self.base_values[self.display_values.index(value)]
+        return value
 
     def refresh(self, palette=None):
         if palette is not None:
@@ -157,10 +167,10 @@ class EqualSegment(ctk.CTkFrame):
         palette = getattr(self, "palette", None)
         if not palette:
             return
-        selected = self.variable.get()
+        selected = self.display_to_base(self.variable.get())
         self.configure(fg_color=palette["bg"])
-        for value, button in zip(self.values, self.buttons.values()):
-            active = value == selected
+        for value, button in zip(self.display_values, self.buttons.values()):
+            active = self.display_to_base(value) == selected
             button.configure(
                 fg_color=palette["selected"] if active else palette["bg"],
                 hover_color=palette["selected_hover"] if active else palette["hover"],
