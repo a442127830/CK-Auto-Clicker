@@ -10,5 +10,5 @@ build/
 dist/
 *.spec
 pulseclick_settings.json
+pulseclick_refactor_settings.json
 *.log
-
