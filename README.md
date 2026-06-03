@@ -1,54 +1,42 @@
 # PulseClick
 
-一个 Windows 可用的现代连点器，界面基于 CustomTkinter 重做，支持连点、宏录制和脚本回放。
+这是 PulseClick 的重构版，旧版单文件程序已移除，当前主目录就是可运行版本。
 
-## 功能
+## UI 方向
 
-- 全局热键：`F6` 开始/停止，`F7` 记录当前鼠标坐标，`F8` 紧急停止
-- 脚本热键：`F9` 开始/停止录制，`F10` 播放脚本
-- 支持左键、右键、中键
-- 支持单击、双击
-- 支持一直点击或固定次数点击
-- 支持鼠标当前位置或固定坐标点击
-- 支持点击间隔、启动延迟、随机浮动
-- 实时显示点击次数和速度
-- 支持录制鼠标点击、常见键盘按键，可选录制鼠标移动轨迹
-- 支持录制键盘录入，可打印字符会保存为文本输入事件
-- 支持手动添加一段文本输入，中文、符号和普通文本都可以回放
-- 支持脚本保存、加载、清空、循环播放和速度倍率
-- 深色/浅色主题切换
-- 窗口置顶
-- 开始后隐藏窗口
-- 自动记住上次的主题、置顶和隐藏窗口设置
-- 常用速度预设
-- CustomTkinter 圆角卡片、分段按钮、开关式现代 UI
-- 统一深浅色调色板，按钮悬停时有高亮边框和状态反馈
+界面采用左侧控制栏、右侧工作区的桌面工具布局。主题提供 `棕色` 和 `白色` 两套暖中性色搭配，切换时带轻量淡化过渡。
+
+## 改动重点
+
+- 把 Windows API、热键线程、连点线程、录制线程、脚本回放和 UI 拆到独立模块。
+- 热键注册失败会返回具体信息，不再静默失败。
+- 连点和脚本执行使用 `SendInput`，减少旧 `mouse_event` 的兼容问题。
+- 后台线程只通过回调通知 UI，UI 更新统一回到 Tk 主线程。
+- 设置文件保存在当前目录下的 `pulseclick_refactor_settings.json`。
+- 全局滚动容器覆盖侧栏和内容区，小窗口下也能访问底部按钮。
 
 ## 运行
 
-在当前目录打开 PowerShell：
-
 ```powershell
 python -m pip install -r .\requirements.txt
-python .\autoclicker.py
+python .\main.py
 ```
 
-也可以直接双击 `启动连点器.bat` 运行，脚本会自动检查并安装依赖。
+也可以双击 `启动连点器.bat`。
 
-程序会在当前目录生成 `pulseclick_settings.json`，用于保存上次的界面偏好设置。
+## 打包
 
-## UI 参考
+已验证可用的单文件 exe 输出位置：
 
-- `CustomTkinter`：现代 Tkinter 组件库，适合做圆角桌面工具界面。
-- `ttkbootstrap`：Bootstrap 风格的 Tkinter 主题库。
-- `Azure-ttk-theme` / `Sun-Valley-ttk-theme`：Fluent 风格的 ttk 主题项目。
+```text
+dist\PulseClickRefactor.exe
+```
 
-## 使用建议
+重新打包：
 
-- 普通使用：选择“鼠标当前位置”，设置间隔，按 `F6` 开始。
-- 固定位置：把鼠标移到目标位置，按 `F7`，再按 `F6` 开始。
-- 防误触：需要停下时按 `F8`。
-- 如果开启“开始后隐藏窗口”，按 `F8` 会停止并恢复窗口。
-- 录制脚本：按 `F9` 开始录制，完成动作后再按 `F9` 停止，按 `F10` 回放。
-- 键盘录入：录制时正常打字，可打印字符会进入脚本；也可以在脚本区输入文本并点“添加文本输入”。
-- 鼠标移动轨迹会产生较多事件，只有需要模拟移动过程时再开启。
+```powershell
+python -m pip install pyinstaller
+python -m PyInstaller --noconfirm --clean --onefile --windowed --name PulseClickRefactor main.py
+```
+
+`build`、`dist` 和 `*.spec` 属于本地构建产物，默认不提交到 Git。
