@@ -139,7 +139,7 @@ class EqualSegment(ctk.CTkFrame):
 
     def set(self, value, invoke=False):
         base_value = self.display_to_base(value)
-        self.variable.set(value if value in self.display_values else base_value)
+        self.variable.set(self.base_to_display(base_value))
         self.refresh()
         if invoke and self.command:
             self.command(base_value)
@@ -159,6 +159,11 @@ class EqualSegment(ctk.CTkFrame):
     def display_to_base(self, value):
         if value in self.display_values:
             return self.base_values[self.display_values.index(value)]
+        return value
+
+    def base_to_display(self, value):
+        if value in self.base_values:
+            return self.display_values[self.base_values.index(value)]
         return value
 
     def refresh(self, palette=None):
@@ -653,7 +658,7 @@ class CKAutoClickerApp(ctk.CTk):
     def apply_theme(self, animated=True):
         if animated:
             self.show_theme_overlay()
-            self.after(35, self.commit_theme)
+            self.commit_theme()
             return
         self.commit_theme()
 
