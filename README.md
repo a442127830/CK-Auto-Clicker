@@ -1,7 +1,7 @@
 # CK Auto Clicker / CK 连点器
 
 <p align="center">
-  <img src="assets/ck-auto-clicker-icon-256.png" width="128" alt="CK Auto Clicker icon">
+  <img src="assets/ck-auto-clicker-readme.png" width="220" alt="CK Auto Clicker icon">
 </p>
 
 <p align="center">
