@@ -163,9 +163,13 @@ class CKAutoClickerApp(ctk.CTk):
         self.theme_overlay = None
         self.theme_jobs = []
         self.logo_anim_job = None
+        self.logo_auto_job = None
         self.logo_anim_step = 0
+        self.logo_hovered = False
+        self.logo_auto_repeats = 0
         self.logo_anim_sizes = (48, 51, 54)
         self.logo_restore_sizes = (54, 51, 48)
+        self.github_icon_images = {}
 
         self.roles = []
         self.segment_controls = []
@@ -182,6 +186,7 @@ class CKAutoClickerApp(ctk.CTk):
         self.apply_window_icon()
         self.apply_language()
         self.apply_theme(animated=False)
+        self.schedule_logo_auto_pulse()
         self.attributes("-topmost", self.always_on_top.get())
         self.hotkeys.start()
         self.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -232,6 +237,56 @@ class CKAutoClickerApp(ctk.CTk):
         self.logo.delete("all")
         self.logo.create_image(canvas_size // 2, canvas_size // 2, image=photo)
 
+    def logo_enter(self, _event=None):
+        self.logo_hovered = True
+        self.animate_logo()
+
+    def logo_leave(self, _event=None):
+        self.logo_hovered = False
+        self.restore_logo()
+
+    def schedule_logo_auto_pulse(self):
+        if self.logo_auto_job:
+            self.after_cancel(self.logo_auto_job)
+        self.logo_auto_job = self.after(3000, self.auto_pulse_logo)
+
+    def auto_pulse_logo(self):
+        self.logo_auto_job = None
+        if self.winfo_exists() and not self.logo_hovered and not self.logo_anim_job:
+            self.logo_auto_repeats = 3
+            self.run_logo_auto_pulse()
+        else:
+            self.schedule_logo_auto_pulse()
+
+    def run_logo_auto_pulse(self):
+        if not self.winfo_exists() or self.logo_hovered:
+            self.schedule_logo_auto_pulse()
+            return
+        self.animate_logo()
+        self.logo_auto_job = self.after(260, self.finish_auto_pulse_logo)
+
+    def finish_auto_pulse_logo(self):
+        self.logo_auto_job = None
+        if self.winfo_exists() and not self.logo_hovered:
+            self.restore_logo()
+        self.logo_auto_repeats -= 1
+        if self.logo_auto_repeats > 0 and self.winfo_exists() and not self.logo_hovered:
+            self.logo_auto_job = self.after(180, self.run_logo_auto_pulse)
+        else:
+            self.schedule_logo_auto_pulse()
+
+    def draw_github_icon(self):
+        if not hasattr(self, "github_icon") or not self.github_icon.winfo_exists():
+            return
+        mode = self.mode()
+        size = 30
+        self.github_icon.delete("all")
+        self.github_icon.configure(bg=token(mode, "sidebar"))
+        filename = "github-mark-white-24.png" if mode == "Brown" else "github-mark-black-24.png"
+        if filename not in self.github_icon_images:
+            self.github_icon_images[filename] = tk.PhotoImage(file=resource_path("assets", filename))
+        self.github_icon.create_image(size // 2, size // 2, image=self.github_icon_images[filename])
+
     def _build_ui(self):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -254,15 +309,22 @@ class CKAutoClickerApp(ctk.CTk):
 
         brand = ctk.CTkFrame(self.sidebar, fg_color="transparent")
         brand.grid(row=0, column=0, padx=20, pady=(22, 18), sticky="ew")
+        brand.grid_columnconfigure(0, minsize=56)
         brand.grid_columnconfigure(1, weight=1)
+        brand.grid_rowconfigure(2, weight=0)
         self.logo = tk.Canvas(brand, width=56, height=56, highlightthickness=0, bd=0)
-        self.logo.grid(row=0, column=0, rowspan=2, padx=(0, 12), sticky="w")
+        self.logo.grid(row=0, column=0, rowspan=2, padx=(0, 12), sticky="n")
         self.logo.configure(cursor="hand2")
-        self.logo.bind("<Enter>", lambda _event: self.animate_logo())
-        self.logo.bind("<Leave>", lambda _event: self.restore_logo())
+        self.logo.bind("<Enter>", self.logo_enter)
+        self.logo.bind("<Leave>", self.logo_leave)
         self.logo.bind("<Button-1>", lambda _event: webbrowser.open(PROJECT_URL))
+        self.github_icon = tk.Canvas(brand, width=30, height=30, highlightthickness=0, bd=0)
+        self.github_icon.grid(row=2, column=0, padx=(0, 12), pady=(2, 0), sticky="n")
         self.role(ctk.CTkLabel(brand, text=APP_TITLE, font=ctk.CTkFont(size=19, weight="bold")), "title").grid(row=0, column=1, sticky="w")
-        self.role(ctk.CTkLabel(brand, text="Precision click utility", font=ctk.CTkFont(size=12)), "muted").grid(row=1, column=1, sticky="w", pady=(2, 0))
+        brand_meta = ctk.CTkFrame(brand, fg_color="transparent")
+        brand_meta.grid(row=1, column=1, sticky="ew", pady=(2, 0))
+        brand_meta.grid_columnconfigure(0, weight=1)
+        self.role(ctk.CTkLabel(brand_meta, text="Precision click utility", font=ctk.CTkFont(size=12)), "muted").grid(row=0, column=0, sticky="w")
 
         self.status_card = self.role(ctk.CTkFrame(self.sidebar, corner_radius=18), "primary_soft_panel")
         self.status_card.grid(row=1, column=0, padx=16, pady=(0, 16), sticky="ew")
@@ -537,6 +599,7 @@ class CKAutoClickerApp(ctk.CTk):
                 widget.configure(fg_color=token(mode, "sidebar"))
                 if hasattr(self, "logo") and self.logo.winfo_exists():
                     self.logo.configure(bg=token(mode, "sidebar"))
+                self.draw_github_icon()
             elif role_name == "global_scroll":
                 widget.configure(
                     fg_color="transparent",
@@ -924,6 +987,12 @@ class CKAutoClickerApp(ctk.CTk):
         self.recorder.stop()
         self.hotkeys.stop()
         self.cancel_theme_jobs()
+        if self.logo_anim_job:
+            self.after_cancel(self.logo_anim_job)
+            self.logo_anim_job = None
+        if self.logo_auto_job:
+            self.after_cancel(self.logo_auto_job)
+            self.logo_auto_job = None
         if self.theme_overlay and self.theme_overlay.winfo_exists():
             self.theme_overlay.destroy()
         self.save_settings()
