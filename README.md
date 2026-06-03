@@ -44,7 +44,16 @@ CKAutoClicker.exe
 
 ### 演示
 
+<video src="docs/demo.mp4" controls width="760"></video>
+
+[如果视频无法播放，请下载演示视频。](docs/demo.mp4)
+
+<details>
+<summary>GIF 预览</summary>
+
 ![CK Auto Clicker demo](docs/demo.gif)
+
+</details>
 
 ### 界面预览
 
@@ -112,7 +121,16 @@ CKAutoClicker.exe
 
 ### Demo
 
+<video src="docs/demo.mp4" controls width="760"></video>
+
+[Download the demo video if it does not play.](docs/demo.mp4)
+
+<details>
+<summary>GIF Preview</summary>
+
 ![CK Auto Clicker demo](docs/demo.gif)
+
+</details>
 
 ### Preview
 
