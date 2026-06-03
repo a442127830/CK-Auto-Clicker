@@ -66,30 +66,32 @@ for offset in range(12):
 RECORD_KEY_CODES = [code for code in KEY_NAMES if code not in (VK_F6, VK_F7, VK_F8, VK_F9, VK_F10)]
 
 UI = {
-    "app_bg": ("#f4f6f8", "#0f1117"),
-    "sidebar": ("#ffffff", "#151821"),
-    "sidebar_active": ("#edf5ff", "#202633"),
-    "panel": ("#ffffff", "#1a1e27"),
-    "panel_soft": ("#eef2f6", "#242a35"),
-    "control": ("#d8e2ee", "#242a35"),
-    "control_hover": ("#cbd7e6", "#303847"),
-    "button_soft": ("#ffffff", "#242a35"),
-    "button_soft_hover": ("#f8fafc", "#303847"),
-    "field": ("#f8fafc", "#121722"),
-    "text": ("#111827", "#f4f7fb"),
-    "text_muted": ("#667085", "#98a2b3"),
-    "border": ("#d8dee8", "#2b3240"),
-    "accent": ("#1677ff", "#22c55e"),
-    "accent_hover": ("#0958d9", "#16a34a"),
-    "accent_soft": ("#e8f2ff", "#193127"),
-    "segment_selected": ("#1677ff", "#1f7a52"),
-    "segment_selected_hover": ("#0958d9", "#24885d"),
-    "segment_unselected": ("#ffffff", "#242a35"),
-    "segment_unselected_hover": ("#f5f8fc", "#2d3441"),
-    "danger": ("#dc2626", "#ef4444"),
-    "danger_hover": ("#b91c1c", "#dc2626"),
-    "neutral": ("#e8edf3", "#2a303d"),
-    "neutral_hover": ("#d5dde8", "#343c4b"),
+    "app_bg": ("#f6faf8", "#090b16"),
+    "sidebar": ("#ffffff", "#101426"),
+    "sidebar_active": ("#e7f6f0", "#26203f"),
+    "panel": ("#ffffff", "#151a2e"),
+    "panel_soft": ("#eef5f2", "#20263d"),
+    "control": ("#e3eee9", "#252b43"),
+    "control_hover": ("#d7e8e0", "#303750"),
+    "button_soft": ("#ffffff", "#20263d"),
+    "button_soft_hover": ("#f1f8f5", "#2b324b"),
+    "field": ("#fbfefd", "#0f1324"),
+    "text": ("#24302b", "#eef2ff"),
+    "text_muted": ("#66756e", "#9aa4bf"),
+    "border": ("#cfddd6", "#343b55"),
+    "accent": ("#16805a", "#8b5cf6"),
+    "accent_hover": ("#116b4a", "#a78bfa"),
+    "accent_soft": ("#e7f6f0", "#2b2148"),
+    "on_accent": ("#ffffff", "#ffffff"),
+    "segment_selected": ("#16805a", "#8b5cf6"),
+    "segment_selected_hover": ("#116b4a", "#a78bfa"),
+    "segment_unselected": ("#ffffff", "#20263d"),
+    "segment_unselected_hover": ("#f1f8f5", "#2b324b"),
+    "danger": ("#c45f73", "#fb7185"),
+    "danger_hover": ("#ad5062", "#fda4af"),
+    "on_danger": ("#ffffff", "#ffffff"),
+    "neutral": ("#e3eee9", "#252b43"),
+    "neutral_hover": ("#d7e8e0", "#303750"),
 }
 
 FLAT_THEME = {
@@ -243,7 +245,7 @@ class AutoClickerApp(ctk.CTk):
             height=38,
             corner_radius=CONTROL_RADIUS,
             fg_color=UI["accent"],
-            text_color="#ffffff",
+            text_color=UI["on_accent"],
             font=ctk.CTkFont(size=18, weight="bold"),
         ).grid(row=0, column=0, rowspan=2, padx=(0, 12), sticky="w")
         ctk.CTkLabel(brand, text=APP_TITLE, text_color=UI["text"], font=ctk.CTkFont(size=20, weight="bold")).grid(row=0, column=1, sticky="w")
@@ -498,7 +500,12 @@ class AutoClickerApp(ctk.CTk):
         else:
             fg_color, hover_color = UI["accent"], UI["accent_hover"]
 
-        text_color = ("#0f172a", "#f8fafc") if kind in ("soft", "neutral") else "#ffffff"
+        if kind == "danger":
+            text_color = UI["on_danger"]
+        elif kind in ("soft", "neutral"):
+            text_color = UI["text"]
+        else:
+            text_color = UI["on_accent"]
         button = ctk.CTkButton(
             master,
             text=text,
@@ -540,12 +547,12 @@ class AutoClickerApp(ctk.CTk):
 
     def button_colors(self, kind):
         if kind == "danger":
-            return self.ui_color("danger"), self.ui_color("danger_hover"), "#ffffff"
+            return self.ui_color("danger"), self.ui_color("danger_hover"), self.ui_color("on_danger")
         if kind == "neutral":
             return self.ui_color("button_soft"), self.ui_color("button_soft_hover"), self.ui_color("text")
         if kind == "soft":
             return self.ui_color("button_soft"), self.ui_color("button_soft_hover"), self.ui_color("text")
-        return self.ui_color("accent"), self.ui_color("accent_hover"), "#ffffff"
+        return self.ui_color("accent"), self.ui_color("accent_hover"), self.ui_color("on_accent")
 
     def button_border_color(self, kind):
         if kind == "danger":
@@ -563,7 +570,7 @@ class AutoClickerApp(ctk.CTk):
             buttons = getattr(segment, "_buttons_dict", {})
             for value, button in buttons.items():
                 if button.winfo_exists():
-                    button.configure(text_color="#ffffff" if value == selected else self.ui_color("text"))
+                    button.configure(text_color=self.ui_color("on_accent") if value == selected else self.ui_color("text"))
 
     def apply_interactive_theme(self):
         for button, kind in list(self.button_registry):
