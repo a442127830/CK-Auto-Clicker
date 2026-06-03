@@ -110,6 +110,64 @@ def resource_path(*parts):
     return os.path.join(base_dir, *parts)
 
 
+class EqualSegment(ctk.CTkFrame):
+    def __init__(self, master, values, variable, command=None, width=222, height=32):
+        super().__init__(master, width=width, height=height, corner_radius=6)
+        self.values = tuple(values)
+        self.variable = variable
+        self.command = command
+        self.segment_width = width
+        self.segment_height = height
+        self.buttons = {}
+        self.configure(fg_color="transparent")
+        self.grid_propagate(False)
+        self.propagate(False)
+        button_height = height - 6
+        for column, value in enumerate(self.values):
+            button = ctk.CTkButton(
+                self,
+                text=value,
+                width=1,
+                height=button_height,
+                corner_radius=4,
+                border_width=0,
+                command=lambda item=value: self.set(item, invoke=True),
+            )
+            button.place(relx=column * 0.5, y=3, relwidth=0.5)
+            self.buttons[value] = button
+
+    def set(self, value, invoke=False):
+        self.variable.set(value)
+        self.refresh()
+        if invoke and self.command:
+            self.command(value)
+
+    def get(self):
+        return self.variable.get()
+
+    def configure_values(self, values):
+        values = tuple(values)
+        for value, button in zip(values, self.buttons.values()):
+            button.configure(text=value)
+        self.values = values
+
+    def refresh(self, palette=None):
+        if palette is not None:
+            self.palette = palette
+        palette = getattr(self, "palette", None)
+        if not palette:
+            return
+        selected = self.variable.get()
+        self.configure(fg_color=palette["bg"])
+        for value, button in zip(self.values, self.buttons.values()):
+            active = value == selected
+            button.configure(
+                fg_color=palette["selected"] if active else palette["bg"],
+                hover_color=palette["selected_hover"] if active else palette["hover"],
+                text_color=palette["selected_text"] if active else palette["text"],
+            )
+
+
 class CKAutoClickerApp(ctk.CTk):
     def __init__(self):
         self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -362,9 +420,9 @@ class CKAutoClickerApp(ctk.CTk):
         bottom = ctk.CTkFrame(self.sidebar, fg_color="transparent")
         bottom.grid(row=6, column=0, padx=16, pady=(0, 18), sticky="ew")
         bottom.grid_columnconfigure(0, weight=1)
-        self.theme_switch = self.segment(bottom, ["Brown", "White"], self.theme_name, self.switch_theme)
+        self.theme_switch = self.equal_segment(bottom, ["Brown", "White"], self.theme_name, self.switch_theme, width=206)
         self.theme_switch.grid(row=0, column=0, pady=(0, 12), sticky="ew")
-        self.language_switch = self.segment(bottom, ["中文", "English"], self.language_name, self.switch_language, translate_values=False)
+        self.language_switch = self.equal_segment(bottom, ["中文", "English"], self.language_name, self.switch_language, translate_values=False, width=206)
         self.language_switch.grid(row=1, column=0, pady=(0, 12), sticky="ew")
         self.top_switch = self.role(ctk.CTkSwitch(bottom, text="Always on top", variable=self.always_on_top, command=self.toggle_topmost), "switch")
         self.top_switch.grid(row=2, column=0, pady=(0, 8), sticky="w")
@@ -510,9 +568,14 @@ class CKAutoClickerApp(ctk.CTk):
         return self.role(ctk.CTkButton(master, text=text, height=42, corner_radius=12, command=command), f"button:{role}")
 
     def segment(self, master, values, variable, command=None, translate_values=True):
-        segment = self.role(ctk.CTkSegmentedButton(master, values=values, variable=variable, command=command), "segment")
+        segment = self.role(ctk.CTkSegmentedButton(master, values=values, variable=variable, command=command, height=32), "segment")
         self.segment_controls.append((segment, tuple(values), variable, translate_values))
         self.bind_segment_refresh(segment)
+        return segment
+
+    def equal_segment(self, master, values, variable, command=None, translate_values=True, width=222):
+        segment = self.role(EqualSegment(master, values, variable, command, width=width), "equal_segment")
+        self.segment_controls.append((segment, tuple(values), variable, translate_values))
         return segment
 
     def bind_segment_refresh(self, segment):
@@ -544,8 +607,12 @@ class CKAutoClickerApp(ctk.CTk):
             current_base = self.base_text(variable.get())
             display_values = [self.display_text(value) for value in values]
             current_display = self.display_text(current_base)
-            segment.configure(values=display_values)
-            segment.set(current_display)
+            if isinstance(segment, EqualSegment):
+                segment.configure_values(display_values)
+                segment.set(current_display)
+            else:
+                segment.configure(values=display_values)
+                segment.set(current_display)
             variable.set(current_display)
             self.refresh_segment_text(segment, self.mode())
 
@@ -640,6 +707,15 @@ class CKAutoClickerApp(ctk.CTk):
                     text_color=token(mode, "text"),
                 )
                 self.refresh_segment_text(widget, mode)
+            elif role_name == "equal_segment":
+                widget.refresh({
+                    "bg": token(mode, "surface_3"),
+                    "hover": token(mode, "surface_2"),
+                    "selected": token(mode, "primary"),
+                    "selected_hover": token(mode, "primary_hover"),
+                    "text": token(mode, "text"),
+                    "selected_text": token(mode, "primary_text"),
+                })
             elif role_name == "switch":
                 widget.configure(progress_color=token(mode, "primary"), button_hover_color=token(mode, "primary_hover"), text_color=token(mode, "text"))
             elif role_name == "check":
@@ -674,7 +750,7 @@ class CKAutoClickerApp(ctk.CTk):
 
     def apply_nav_theme(self):
         mode = self.mode()
-        active = self.page_name.get()
+        active = self.active_page
         for name, button in getattr(self, "nav_buttons", {}).items():
             if not button.winfo_exists():
                 continue
