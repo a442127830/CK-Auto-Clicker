@@ -1,10 +1,44 @@
 # CK Auto Clicker / CK 连点器
 
-![CK Auto Clicker icon](assets/ck-auto-clicker-icon-256.png)
+<p align="center">
+  <img src="assets/ck-auto-clicker-icon-256.png" width="128" alt="CK Auto Clicker icon">
+</p>
 
-## 中文说明
+<p align="center">
+  <a href="#中文"><kbd>中文</kbd></a>
+  ·
+  <a href="#english"><kbd>English</kbd></a>
+</p>
+
+<p align="center">
+  <a href="#下载"><kbd>下载</kbd></a>
+  ·
+  <a href="#界面预览"><kbd>界面预览</kbd></a>
+  ·
+  <a href="#功能"><kbd>功能</kbd></a>
+  ·
+  <a href="#运行"><kbd>运行</kbd></a>
+</p>
+
+<a id="中文"></a>
+
+## 中文
+
+<p>
+  <a href="#中文"><kbd><strong>中文</strong></kbd></a>
+  ·
+  <a href="#english"><kbd>English</kbd></a>
+</p>
 
 CK Auto Clicker 是一款 Windows 桌面连点器，支持全局热键、固定坐标点击、脚本录制和脚本回放。项目名统一使用英文形式 `CK Auto Clicker`，软件界面支持 `中文 / English` 切换。
+
+### 下载
+
+前往 [Releases](https://github.com/a442127830/CK-Auto-Clicker/releases) 下载最新版本：
+
+```text
+CKAutoClicker.exe
+```
 
 ### 界面预览
 
@@ -50,9 +84,25 @@ python -m PyInstaller --noconfirm --clean --onefile --windowed --name CKAutoClic
 dist\CKAutoClicker.exe
 ```
 
+<a id="english"></a>
+
 ## English
 
+<p>
+  <a href="#中文"><kbd>中文</kbd></a>
+  ·
+  <a href="#english"><kbd><strong>English</strong></kbd></a>
+</p>
+
 CK Auto Clicker is a Windows desktop auto-clicker with global hotkeys, fixed-position clicking, macro recording, and macro playback. The app name is shown as `CK Auto Clicker`, and the interface supports `中文 / English` switching.
+
+### Download
+
+Download the latest version from [Releases](https://github.com/a442127830/CK-Auto-Clicker/releases):
+
+```text
+CKAutoClicker.exe
+```
 
 ### Preview
 
